@@ -1,15 +1,20 @@
 {
-  "name": "clinic-schedule-table-from-spreadsheet",
+  "name": "aactriangle-org-schedule",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint . -c ./.eslintrc.js",
+    "lint:fix": "eslint . -c ./.eslintrc.js --fix"
   },
   "author": "John White",
   "license": "ISC",
   "dependencies": {
-    "csvtojson": "^2.0.10"
+    "csvtojson": "^2.0.10",
+    "dotenv": "^16.3.1",
+    "googleapis": "^130.0.0",
+    "moment-timezone": "^0.5.44"
   },
   "devDependencies": {
     "eslint": "^8.29.0",
