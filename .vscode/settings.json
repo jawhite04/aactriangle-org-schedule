@@ -3,7 +3,7 @@
     "files.eol": "\n",
     "editor.detectIndentation": true,
     "[javascript]": {
-        "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+        "editor.defaultFormatter": "vscode.typescript-language-features",
     },
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": "explicit"
