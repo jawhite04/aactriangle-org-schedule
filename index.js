@@ -1,8 +1,10 @@
 const path = require('node:path');
 const csv = require('csvtojson');
 const { toHtmlTable } = require('./table');
+const { sendToCalendar } = require('./gcal');
 
 const year = '2024';
+const domain = 'https://aactriangle.org';
 
 const csvFile = `${year} Instructor Signup - ${year} Instructor Signup.csv`;
 const csvPath = './';
@@ -130,5 +132,6 @@ const getDayOfWeek = (monthAndDay) => {
       topic: clinics[clinicKey.topic]
     }));
 
-  await toHtmlTable({ year, clinicInfo });
+  toHtmlTable({ year, clinicInfo });
+  await sendToCalendar({ year, clinicInfo, domain });
 })();
