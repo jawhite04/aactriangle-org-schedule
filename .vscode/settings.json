@@ -1,9 +1,11 @@
 {
     "editor.tabSize": 2,
+    "files.eol": "\n",
     "editor.detectIndentation": true,
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
-    "editor.codeActionsOnSave":
-    {
-        "source.fixAll.eslint": true
+    "[javascript]": {
+        "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    },
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
     }
 }

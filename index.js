@@ -1,79 +1,94 @@
-const fs = require('fs');
-const path = require('path');
+const path = require('node:path');
 const csv = require('csvtojson');
+const { toHtmlTable } = require('./table');
+const { sendToCalendar } = require('./gcal');
 
-const csvFile = '2023 Instructor Signup - 2023 Instructor Signup.csv';
+const year = '2024';
+const domain = 'https://aactriangle.org';
+
+const csvFile = `${year} Instructor Signup - ${year} Instructor Signup.csv`;
 const csvPath = './';
 const resolvedInputPath = path.resolve(path.join(csvPath, csvFile));
-
-const outputFile = '2023 Clinic Schedule for the webpage.txt';
-const outputPath = './';
-const resolvedOuptutPath = path.resolve(path.join(outputFile, outputPath));
-
-const year = '2023';
 
 const locations = {
   Morrisville: {
     name: 'TRC Morrisville',
-    url: 'https://www.trianglerockclub.com/morrisville/'
+    url: 'https://www.trianglerockclub.com/morrisville/',
+    address: '102 Pheasant Wood Ct, Morrisville, NC 27560'
   },
   Raleigh: {
     name: 'TRC Raleigh',
-    url: 'https://www.trianglerockclub.com/raleigh/'
+    url: 'https://www.trianglerockclub.com/raleigh/',
+    address: '6022 Duraleigh Rd, Raleigh, NC 27612'
   },
   Durham: {
     name: 'TRC Durham',
-    url: 'https://www.trianglerockclub.com/durham/'
+    url: 'https://www.trianglerockclub.com/durham/',
+    address: '1010 Martin Luther King Jr Pkwy Suite 400, Durham, NC 27713'
   }
 };
 
+// the object key ("Rappelling", "Cleaning Anchors", etc) must **exactly** match the clinic name in the csv
 const clinics = {
   Rappelling: {
     name: 'Rappelling Best Practices',
     path: '/events/rappelling-best-practices',
     time: {
-      Sunday: '6:00-8:00 PM',
-      Monday: '7:00-8:30 PM'
+      Sunday: {
+        start: '6:00 PM',
+        end: '8:00 PM'
+      },
+      Monday: {
+        start: '7:00 PM',
+        end: '8:30 PM'
+      }
     }
   },
   Knots: {
     name: 'Knots for Climbers',
     path: '/events/climbing-knots',
     time: {
-      Monday: '7:00-8:45 PM'
+      Monday: {
+        start: '7:00 PM',
+        end: '8:45 PM'
+      }
     }
   },
   'Cleaning Anchors': {
     name: 'Two-Bolt Anchors: Cleaning & Lowering',
     path: '/events/cleaning-sport-anchors',
     time: {
-      Sunday: '6:00-8:00 PM',
-      Monday: '7:00-8:30 PM'
+      Sunday: {
+        start: '6:00 PM',
+        end: '8:00 PM'
+      },
+      Monday: {
+        start: '7:00 PM',
+        end: '8:30 PM'
+      }
     }
   },
-  '2 Bolt Anchors': {
+  '2-Bolt Anchors': {
     name: 'Two-Bolt Anchors: The Quad',
     path: '/events/setting-sport-anchors',
     time: {
-      Monday: '7:00-8:30 PM'
+      Monday: {
+        start: '7:00 PM',
+        end: '8:30 PM'
+      }
     }
   },
-  'Belay from Above': {
+  'Belay From Above': {
     name: 'Belaying From Above',
     path: '/events/belaying-from-above',
     time: {
-      Monday: '7:00-9:00 PM'
+      Monday: {
+        start: '7:00 PM',
+        end: '9:00 PM'
+      }
     }
   }
 };
-
-/*
-<tr>
-  <td class="tc"><a href="/events/cleaning-sport-anchors">Two-Bolt Anchors: Cleaning & Lowering</a></td>
-  <td class="tc">Sunday December 11, 6:00-8:00 PM</td>
-  <td class="tc"><a href="https://www.trianglerockclub.com/morrisville/">TRC Morrisville</a></td>
-</tr>
-*/
 
 const daysOfWeek = [
   'Sunday',
@@ -84,10 +99,6 @@ const daysOfWeek = [
   'Friday',
   'Saturday'
 ];
-
-const getLinkHtml = (href, content) => `<a href="${href}">${content}</a>`;
-const getTableRow = (content) => `<tr>${content}</tr>`;
-const getTableCell = (content) => `<td class="tc">${content}</td>`;
 
 const getDayOfWeek = (monthAndDay) => {
   const dateObj = new Date(`${monthAndDay}, ${year}`);
@@ -110,7 +121,7 @@ const getDayOfWeek = (monthAndDay) => {
     topic: clinicTopics[field]
   }));
 
-  const clinicInformation = clinicKeys
+  const clinicInfo = clinicKeys
     // only keep information where date, location, and topic have data
     .filter((clinicKey) => clinicKey.date && clinicKey.location && clinicKey.topic)
     // get all the info pertaining to one clinic into the same object
@@ -119,20 +130,8 @@ const getDayOfWeek = (monthAndDay) => {
       dayOfWeek: getDayOfWeek(clinicKey.date),
       location: locations[clinicKey.location],
       topic: clinics[clinicKey.topic]
-    }))
-    // now that everything's in one place, build out the info for the table rows
-    .map((clinicKey) => ({
-      location: getLinkHtml(clinicKey.location.url, clinicKey.location.name),
-      date: `${clinicKey.dayOfWeek} ${clinicKey.date}, ${clinicKey.topic.time[clinicKey.dayOfWeek]}`,
-      topic: getLinkHtml(clinicKey.topic.path, clinicKey.topic.name)
-    }))
-    // with prepared info, build it into a table
-    .map((clinicKey) => getTableRow(['', // this is a readability thing
-      getTableCell(clinicKey.topic),
-      getTableCell(clinicKey.date),
-      getTableCell(clinicKey.location), ''
-    ].join('\n'))) // join the location, date, and topic together for the row
-    .join('\n'); // join the rows together
+    }));
 
-  fs.writeFileSync(resolvedOuptutPath, clinicInformation);
+  toHtmlTable({ year, clinicInfo });
+  await sendToCalendar({ year, clinicInfo, domain });
 })();
