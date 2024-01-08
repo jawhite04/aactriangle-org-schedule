@@ -29,7 +29,13 @@ const getGCalClient = async () => {
 };
 
 const sendToCalendar = async ({ year, clinicInfo, domain }) => {
-  const gcal = await getGCalClient();
+  let gcal;
+  try {
+    gcal = await getGCalClient();
+  } catch (e) {
+    console.error('Failed to create Google Calendar client. No calendar events will be created.\n', e);
+    return;
+  }
 
   const candidateEvents = clinicInfo.map((clinic) => {
     const start = moment.tz(new Date(`${clinic.date}, ${year} ${clinic.topic.time[clinic.dayOfWeek].start}`), tz).format();
