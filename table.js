@@ -24,7 +24,7 @@ const getLinkHtml = (href, content) => `<a href="${href}">${content}</a>`;
 const getTableRow = (content) => `<tr>${content}</tr>`;
 const getTableCell = (content) => `<td class="tc">${content}</td>`;
 
-const toHtmlTable = async ({ year, clinicInfo }) => {
+const toHtmlTable = ({ year, clinicInfo }) => {
   /*
   The end result should look similar to this:
   <tr>
