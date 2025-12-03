@@ -1,7 +1,27 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const constants = require('./constants');
 
-const formatTimeRange = (startTime, endTime) => {
+const formatTimeRange = (timeRange) => {
+  if (!timeRange.includes('-')) {
+    return timeRange;
+  }
+
+  const [startTime, endTime] = timeRange.split('-')
+    .map((time) => {
+      const match = time.trim().match(/^(\d+)(:\d+)?\s?(AM|PM)?$/i);
+      if (!match) {
+        throw new Error(`Could not parse time: ${time}`);
+      }
+
+      // "11 AM" => ["11 AM", "11", undefined, "AM"]
+      // "11:15 AM" => ["11:15 AM", "11", ":15", "AM"]
+      const [, hour, minutes = ':00', amPm = ''] = match;
+
+      // fix: debug start time am/pm
+      return `${hour}${minutes} ${amPm}`;
+    });
+
   const start = new Date(`1/1/1970 ${startTime}`);
   const end = new Date(`1/1/1970 ${endTime}`);
 
@@ -28,7 +48,7 @@ const toHtmlTable = ({ year, clinicInfo }) => {
   /*
   The end result should look similar to this:
   <tr>
-    <td class="tc"><a href="/events/cleaning-sport-anchors">Two-Bolt Anchors: Cleaning & Lowering</a></td>
+    <td class="tc"><a href="/events/trc-morrisville/cleaning-sport-anchors">Two-Bolt Anchors: Cleaning & Lowering</a></td>
     <td class="tc">Sunday December 11, 6:00-8:00 PM</td>
     <td class="tc"><a href="https://www.trianglerockclub.com/morrisville/">TRC Morrisville</a></td>
   </tr>
@@ -38,11 +58,11 @@ const toHtmlTable = ({ year, clinicInfo }) => {
   const outputPath = './';
   const resolvedOuptutPath = path.resolve(path.join(outputFile, outputPath));
 
-  // now that everything's in one place, build out the info for the table rows
   const tableHtml = clinicInfo.map((clinicKey) => ({
-    location: getLinkHtml(clinicKey.location.url, clinicKey.location.name),
-    date: `${clinicKey.dayOfWeek} ${clinicKey.date}, ${formatTimeRange(clinicKey.topic.time[clinicKey.dayOfWeek].start, clinicKey.topic.time[clinicKey.dayOfWeek].end)}`,
-    topic: getLinkHtml(clinicKey.topic.path, clinicKey.topic.name)
+    topic: getLinkHtml(clinicKey.eventPageRelativePath, clinicKey.topic.name),
+    // date: `${clinicKey.dayOfWeek} ${clinicKey.date}, ${formatTimeRange(clinicKey.time)}`,
+    date: `${clinicKey.date}, ${formatTimeRange(clinicKey.time)}`,
+    location: getLinkHtml(clinicKey.location.url, clinicKey.location.name)
   }))
     // with prepared info, build it into a table
     .map((clinicKey) => getTableRow([
